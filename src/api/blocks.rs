@@ -1,7 +1,7 @@
 //block endpoints
 use actix_web::{get,web,HttpResponse,Responder};
 use std::sync::Arc;
-use crate::{models::block, oura_stream::BlockChainState};
+use crate::{ oura_stream::BlockChainState};
 
 #[get("/api/blocks")]
 pub async fn get_blocks(

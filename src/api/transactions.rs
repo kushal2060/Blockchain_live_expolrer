@@ -2,7 +2,7 @@
 
 use actix_web::{get,web,Responder,HttpResponse};
 use std::sync::Arc;
-use crate::{models::transaction, oura_stream::BlockChainState};
+use crate::{oura_stream::BlockChainState};
 
 #[get("/api/transaction")]
 pub async fn get_transactions(
