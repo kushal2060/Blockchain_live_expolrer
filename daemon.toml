@@ -1,0 +1,18 @@
+[source]
+type = "N2N"
+peers = ["preprod-node.world.dev.cardano.org:30000"]
+
+[intersect]
+type = "Tip"
+
+[chain]
+type = "preprod"
+
+[[filters]]
+type = "SplitBlock"
+
+[[filters]]
+type = "ParseCbor"
+
+[sink]
+type = "Stdout"

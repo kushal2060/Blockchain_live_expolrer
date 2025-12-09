@@ -1,12 +1,12 @@
 [package]
 name = "cardano-explorer-backend"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 #web framework
 actix-web="4"
-actix-ws = "0.2"
+actix-ws = "0.3.0"
 actix-cors = "0.7"
 
 # Async runtime
@@ -17,7 +17,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 # Oura - for blockchain data
-oura = { version = "1.9", features = ["daemon"] }
+oura = { version = "2.0.0" }
 
 # Utilities
 env_logger = "0.11"
