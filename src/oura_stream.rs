@@ -1,67 +1,78 @@
-use  std::{ sync::Arc};
-
+use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::models::{Block,Transaction};
+use crate::models::{Block, Transaction};
 
-//common state
+// Constants for Cardano preprod network
+const CARDANO_RELAY: &str = "preprod-node.world.dev.cardano.org:30000";
+const CARDANO_MAGIC: &str = "pre-prod"; // Preprod magic number
+
+// Common state
 pub struct BlockChainState {
-    pub blocks: Arc<RwLock<Vec<Block>>>, //many reader tara one writer Arc for the sharing same state for multiple thread.
+    pub blocks: Arc<RwLock<Vec<Block>>>,
     pub transactions: Arc<RwLock<Vec<Transaction>>>,
 }
 
 impl BlockChainState {
     pub fn new() -> Self {
-        Self { blocks: Arc::new(RwLock::new(Vec::new())), 
-            transactions: Arc::new(RwLock::new(Vec::new())) }
+        Self {
+            blocks: Arc::new(RwLock::new(Vec::new())),
+            transactions: Arc::new(RwLock::new(Vec::new())),
+        }
     }
-    pub async fn add_block(&self,block:Block){
+
+    pub async fn add_block(&self, block: Block) {
         let mut blocks = self.blocks.write().await;
         blocks.insert(0, block);
 
-        //only last 100 blocks 
-        if blocks.len() >100 {
+        // Only keep last 100 blocks
+        if blocks.len() > 100 {
             blocks.truncate(100);
         }
     }
 
-    pub async fn add_transactions(&self,tx:Transaction){
+    pub async fn add_transactions(&self, tx: Transaction) {
         let mut transactions = self.transactions.write().await;
-        transactions.insert(0,tx); 
+        transactions.insert(0, tx);
 
-        //only 500
+        // Only keep 500
         if transactions.len() > 500 {
             transactions.truncate(500);
         }
     }
 
-    pub async fn get_blocks(&self,limit: usize) -> Vec<Block> {
+    pub async fn get_blocks(&self, limit: usize) -> Vec<Block> {
         let blocks = self.blocks.read().await;
         blocks.iter().take(limit).cloned().collect()
     }
 
-    pub async fn get_transactions(&self,limit: usize) -> Vec<Transaction> {
-        let transactions =self.transactions.read().await;
-        transactions.iter().take(limit).cloned().collect() //return the owned blocks not references
+    pub async fn get_transactions(&self, limit: usize) -> Vec<Transaction> {
+        let transactions = self.transactions.read().await;
+        transactions.iter().take(limit).cloned().collect()
     }
 }
 
-//spwan oura as subprocess and parse stdout
-
-pub async fn start_oura(state: Arc<BlockChainState>){
-    use std::process::{Command,Stdio};
-    use std::io::{BufRead,BufReader};
+// Spawn oura as subprocess and parse stdout
+pub async fn start_oura(state: Arc<BlockChainState>) {
+    use std::io::{BufRead, BufReader};
+    use std::process::{Command, Stdio};
 
     tokio::spawn(async move {
-        log::info!("Starting out oura stream");
+        log::info!("Starting oura dump stream");
 
-        let mut child = Command::new("oura") 
-        .args(&["daemon", "--config", "./daemon.toml"])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn().expect("Failed to start Oura");
-   
-        let stdout = child.stdout.take().expect("Failed to stdout");
-        let stderr = child.stderr.take().expect("Failed to stderr");
+        let mut child = Command::new("oura")
+            .arg("dump")
+            .arg(CARDANO_RELAY)
+            .arg("--bearer")
+            .arg("tcp")
+            .arg("--magic")
+            .arg(CARDANO_MAGIC)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("Failed to start Oura");
+
+        let stdout = child.stdout.take().expect("Failed to capture stdout");
+        let stderr = child.stderr.take().expect("Failed to capture stderr");
 
         // Log stderr in separate task
         tokio::task::spawn_blocking(move || {
@@ -81,7 +92,6 @@ pub async fn start_oura(state: Arc<BlockChainState>){
                     Ok(line_str) => {
                         log::debug!("OURA: {}", &line_str[..line_str.len().min(100)]);
                         if let Ok(event) = serde_json::from_str::<serde_json::Value>(&line_str) {
-                            // Send to async task via channel or use block_on
                             let state_clone = state.clone();
                             tokio::runtime::Handle::current().block_on(async move {
                                 process_event(event, state_clone).await;
@@ -94,50 +104,10 @@ pub async fn start_oura(state: Arc<BlockChainState>){
             log::warn!("Oura stream ended");
         });
     });
-
 }
 
-// async fn process_event(event:serde_json::Value,state: Arc<BlockChainState>){
-//     //eveent type
-//     if let Some(event_obj) = event.get("event") {
-//         if let Some(block_data) = event_obj.get("block") {
-//             let context = event.get("context").unwrap();
-
-//             let block = Block::new (
-//                 context.get("block_hash").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-//                 context.get("block_number").and_then(|v| v.as_u64()).unwrap_or(0),
-//                 context.get("slot").and_then(|v| v.as_u64()).unwrap_or(0),
-//                 context.get("epoch").and_then(|v| v.as_u64()).unwrap_or(0),
-//                 context.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0),
-//                 block_data.get("tx_count").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-//                 block_data.get("size").and_then(|v| v.as_u64()).unwrap_or(0),
-//             );
-//             log::info!("New block: #{} - {}",block.number,&block.hash[..16]);
-//             state.add_block(block).await;
-//         }
-
-//         if let Some(tx_data) = event_obj.get("transaction"){
-//             //now tranaction
-//             let context = event.get("context").unwrap();
-            
-//             let tx = Transaction::new(
-//                 tx_data.get("hash").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-//                 context.get("block_number").and_then(|v| v.as_u64()).unwrap_or(0),
-//                 context.get("timestamp").and_then(|v| v.as_u64()).unwrap_or(0),
-//                 tx_data.get("fee").and_then(|v| v.as_u64()).unwrap_or(0),
-//                 tx_data.get("input_count").and_then(|v| v.as_array()).map(|arr| arr.len() as u32).unwrap_or(0),
-//                 tx_data.get("output_count").and_then(|v| v.as_array()).map(|arr| arr.len() as u32).unwrap_or(0),
-//                 tx_data.get("total_output").and_then(|v| v.as_u64()).unwrap_or(0), 
-//             );
-
-//             log::debug!("New transaction : {}",&tx.hash[..16]);
-//             state.add_transactions(tx).await;
-
-//     }
-//     }
-// }
-
 async fn process_event(event: serde_json::Value, state: Arc<BlockChainState>) {
+    // Only process "apply" events
     if event.get("event").and_then(|v| v.as_str()) != Some("apply") {
         return;
     }
@@ -152,80 +122,127 @@ async fn process_event(event: serde_json::Value, state: Arc<BlockChainState>) {
         None => return,
     };
 
-    let block_hash = point.get("hash").and_then(|v| v.as_str()).unwrap_or("").to_string();
-    let slot = point.get("slot").and_then(|v| v.as_u64()).unwrap_or(0);
+    // Extract basic metadata from point
+    let block_hash = point
+        .get("hash")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    
+    let slot = point
+        .get("slot")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
 
-    // This is a transaction from SplitBlock
-    if let Some(tx_hash_val) = record.get("hash") {
-        let tx_hash = tx_hash_val.as_str().unwrap_or("").to_string();
+    // Get context for additional metadata
+    let context = record.get("context");
+    
+    let block_number = context
+        .and_then(|c| c.get("block_number"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(slot);
+    
+    let epoch = context
+        .and_then(|c| c.get("epoch"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(slot / 432000);
+    
+    let timestamp = context
+        .and_then(|c| c.get("timestamp"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(1654041600 + slot);
+
+    // Check if this is a Block event
+    if let Some(block_obj) = record.get("block") {
+        let body_size = block_obj
+            .get("body_size")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
         
-        let fee = record.get("fee")
+        let tx_count = block_obj
+            .get("tx_count")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0) as u32;
+
+        let block_number = block_obj
+            .get("number")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(block_number);
+
+        let epoch = block_obj
+            .get("epoch")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(epoch);
+
+        let block = Block::new(
+            block_hash.clone(),
+            block_number,
+            slot,
+            epoch,
+            timestamp,
+            tx_count,
+            body_size,
+        );
+
+        log::info!(
+            "New block: {} (number: {}, epoch: {}, slot: {}, txs: {}, size: {} bytes)",
+            &block.hash[..16.min(block.hash.len())],
+            block_number,
+            epoch,
+            slot,
+            tx_count,
+            body_size
+        );
+        state.add_block(block).await;
+        return;
+    }
+
+    // Check if this is a Transaction event
+    if let Some(tx_obj) = record.get("transaction") {
+        let tx_hash = tx_obj
+            .get("hash")
             .and_then(|v| v.as_str())
-            .and_then(|s| s.parse::<u64>().ok())
-            .unwrap_or(0);
-        
-        let inputs = record.get("inputs")
-            .and_then(|v| v.as_array())
-            .map(|a| a.len() as u32)
-            .unwrap_or(0);
-        
-        let outputs_array = record.get("outputs").and_then(|v| v.as_array());
-        let outputs = outputs_array.as_ref().map(|a| a.len() as u32).unwrap_or(0);
-        
-        let total_output = outputs_array
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|o| {
-                        o.get("coin")
-                            .and_then(|c| c.as_str())
-                            .and_then(|s| s.parse::<u64>().ok())
-                    })
-                    .sum::<u64>()
-            })
+            .unwrap_or("")
+            .to_string();
+
+        let fee = tx_obj
+            .get("fee")
+            .and_then(|v| v.as_u64())
             .unwrap_or(0);
 
-        // Add transaction
+        let input_count = tx_obj
+            .get("input_count")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0) as u32;
+
+        let output_count = tx_obj
+            .get("output_count")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0) as u32;
+
+        let total_output = tx_obj
+            .get("total_output")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
+
         let tx = Transaction::new(
             tx_hash.clone(),
-            0,
-            0,
+            block_number,
+            timestamp,
             fee,
-            inputs,
-            outputs,
+            input_count,
+            output_count,
             total_output,
         );
 
         log::info!(
-            "New transaction: {} (slot: {}, fee: {}, in: {}, out: {})", 
-            &tx.hash[..16.min(tx.hash.len())], 
-            slot,
-            fee, 
-            inputs, 
-            outputs
+            "New transaction: {} (block: {}, fee: {}, in: {}, out: {})",
+            &tx.hash[..16.min(tx.hash.len())],
+            block_number,
+            fee,
+            input_count,
+            output_count
         );
         state.add_transactions(tx).await;
-
-        // create/update a block entry based on this transaction
-        // Check if  already have this block
-        let blocks = state.blocks.read().await;
-        let existing_block = blocks.iter().find(|b| b.hash == block_hash && b.slot == slot);
-        
-        if existing_block.is_none() {
-            drop(blocks); // Release read lock
-            
-            // Create new block entry
-            let block = Block::new(
-                block_hash,
-                0,
-                slot,
-                0,
-                0,
-                1, 
-                0,
-            );
-            
-            log::info!("New block: {} (slot: {})", &block.hash[..16], slot);
-            state.add_block(block).await;
-        }
     }
 }
