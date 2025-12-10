@@ -6,7 +6,7 @@ import TransactionCard from './TransactionCard';
 import { useWebsocket } from '@/hooks/websocket';
 
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://blockchainliveexpolrer-production-b895.up.railway.app/ws';
 
 export default function TransactionList() {
   const [transactions, setTransactions] = useState<Transactions[]>([]);
