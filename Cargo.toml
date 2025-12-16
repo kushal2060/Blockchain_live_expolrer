@@ -12,7 +12,7 @@ futures-util = "0.3"
 
 
 #Authentication & JWT
-jsonwebtoken = { version="10.2.0",features=["rust_crypto"]}
+jsonwebtoken = "9.3.0"
 actix-web-httpauth="0.8"
 
 #cryptography

@@ -53,7 +53,7 @@ async fn main() -> std::io::Result<()> {
         .service(auth::routes::referesh_token)
         //auth routes
         
-        .service(auth::routes::test_login)
+       
         
         .service(
             web::scope("/api/auth")
