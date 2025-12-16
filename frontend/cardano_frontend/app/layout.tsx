@@ -4,8 +4,10 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { WalletProvider } from '@/context/WalletContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { WebsocketProvider } from '@/context/WebSocketContext';
 import Navbar from '@/components/layout/Navbar';
 import './globals.css';
+import { Github } from 'lucide-react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,9 +26,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <WalletProvider>
           <AuthProvider>
-            <Navbar />
-            {children}
-            <Footer />
+            <WebsocketProvider>
+              <Navbar />
+              {children}
+              <Footer />
+            </WebsocketProvider>
           </AuthProvider>
         </WalletProvider>
       </body>
@@ -55,7 +59,6 @@ function Footer() {
             <h3 className="font-bold mb-4">Explorer</h3>
             <ul className="space-y-2 text-sm text-gray-400">
               <li><a href="/" className="hover:text-white transition-colors">Home</a></li>
-              <li><a href="/dashboard" className="hover:text-white transition-colors">Dashboard</a></li>
               <li><a href="/my-transactions" className="hover:text-white transition-colors">My Transactions</a></li>
               <li><a href="/my-wallets" className="hover:text-white transition-colors">My Wallets</a></li>
             </ul>
@@ -87,7 +90,7 @@ function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
           <p>© 2024 Cardano PreProd Explorer. Built with Rust + Next.js + Oura</p>
-          <p className="mt-2">Made with ❤️ for the Cardano community</p>
+          <p className="mt-2">Made with ❤️ for the Cardano community by<br></br> <a href="https://github.com/kushal2060/Blockchain_live_expolrer" target="_blank" className="hover:underline"><Github className='inline-block mr-2'/>Kushal Acharya</a></p>
         </div>
       </div>
     </footer>
