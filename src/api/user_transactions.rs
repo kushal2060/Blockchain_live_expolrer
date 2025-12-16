@@ -1,7 +1,7 @@
 //filter garne user ko transactions using Blockfrost API
 
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
-use std::sync::Arc;
+
 
 use crate::auth::middleware::get_claims;
 

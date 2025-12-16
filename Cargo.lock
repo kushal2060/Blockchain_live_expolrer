@@ -563,8 +563,8 @@ dependencies = [
  "log",
  "once_cell",
  "oura",
- "pallas-codec 0.34.0",
- "pallas-crypto 0.34.0",
+ "pallas-codec",
+ "pallas-crypto",
  "reqwest 0.12.26",
  "serde",
  "serde_json",
@@ -2555,9 +2555,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37bba5e9e84978df0d42b72c3b92ead5a3b1c4852f66c08b648a5c057f58717a"
 dependencies = [
  "pallas-addresses",
- "pallas-codec 0.33.0",
+ "pallas-codec",
  "pallas-configs",
- "pallas-crypto 0.33.0",
+ "pallas-crypto",
  "pallas-hardano",
  "pallas-network",
  "pallas-primitives",
@@ -2577,8 +2577,8 @@ dependencies = [
  "crc",
  "cryptoxide",
  "hex",
- "pallas-codec 0.33.0",
- "pallas-crypto 0.33.0",
+ "pallas-codec",
+ "pallas-crypto",
  "thiserror 1.0.69",
 ]
 
@@ -2591,8 +2591,8 @@ dependencies = [
  "chrono",
  "hex",
  "pallas-addresses",
- "pallas-codec 0.33.0",
- "pallas-crypto 0.33.0",
+ "pallas-codec",
+ "pallas-crypto",
  "pallas-primitives",
  "pallas-traverse",
  "rand 0.8.5",
@@ -2611,18 +2611,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallas-codec"
-version = "0.34.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a73eb2a9b424239230a45e66f61a60b123e1cf50ca6da9bd1049e17b2b579ca"
-dependencies = [
- "hex",
- "minicbor",
- "serde",
- "thiserror 1.0.69",
-]
-
-[[package]]
 name = "pallas-configs"
 version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2632,8 +2620,8 @@ dependencies = [
  "hex",
  "num-rational",
  "pallas-addresses",
- "pallas-codec 0.33.0",
- "pallas-crypto 0.33.0",
+ "pallas-codec",
+ "pallas-crypto",
  "pallas-primitives",
  "serde",
  "serde_json",
@@ -2648,22 +2636,7 @@ checksum = "0368945cd093e550febe36aef085431b1611c2e9196297cd70f4b21a4add054c"
 dependencies = [
  "cryptoxide",
  "hex",
- "pallas-codec 0.33.0",
- "rand_core 0.6.4",
- "serde",
- "thiserror 1.0.69",
- "zeroize",
-]
-
-[[package]]
-name = "pallas-crypto"
-version = "0.34.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f4c3dfc9286db9f1e54f35b2d8e7924dfdb17f480139ed2c113db6759578e48"
-dependencies = [
- "cryptoxide",
- "hex",
- "pallas-codec 0.34.0",
+ "pallas-codec",
  "rand_core 0.6.4",
  "serde",
  "thiserror 1.0.69",
@@ -2693,8 +2666,8 @@ dependencies = [
  "byteorder",
  "hex",
  "itertools 0.13.0",
- "pallas-codec 0.33.0",
- "pallas-crypto 0.33.0",
+ "pallas-codec",
+ "pallas-crypto",
  "rand 0.8.5",
  "socket2 0.5.10",
  "thiserror 1.0.69",
@@ -2712,8 +2685,8 @@ dependencies = [
  "bech32 0.9.1",
  "hex",
  "log",
- "pallas-codec 0.33.0",
- "pallas-crypto 0.33.0",
+ "pallas-codec",
+ "pallas-crypto",
  "serde",
  "serde_json",
 ]
@@ -2727,8 +2700,8 @@ dependencies = [
  "hex",
  "itertools 0.13.0",
  "pallas-addresses",
- "pallas-codec 0.33.0",
- "pallas-crypto 0.33.0",
+ "pallas-codec",
+ "pallas-crypto",
  "pallas-primitives",
  "paste",
  "serde",
@@ -2743,8 +2716,8 @@ checksum = "46ff1f49d99aced71b20daa68577167e1db3f0aaffe92fbc1de6df0b6002a66e"
 dependencies = [
  "hex",
  "pallas-addresses",
- "pallas-codec 0.33.0",
- "pallas-crypto 0.33.0",
+ "pallas-codec",
+ "pallas-crypto",
  "pallas-primitives",
  "pallas-traverse",
  "pallas-wallet",
@@ -2760,8 +2733,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2bdf89daca5ebfbcd9b5cf8b480486302ffd3401f6891d3c4f02087fd7687b94"
 dependencies = [
  "pallas-applying",
- "pallas-codec 0.33.0",
- "pallas-crypto 0.33.0",
+ "pallas-codec",
+ "pallas-crypto",
  "pallas-primitives",
  "pallas-traverse",
  "prost-types",
@@ -2778,7 +2751,7 @@ dependencies = [
  "bip39",
  "cryptoxide",
  "ed25519-bip32",
- "pallas-crypto 0.33.0",
+ "pallas-crypto",
  "rand 0.8.5",
  "thiserror 1.0.69",
 ]

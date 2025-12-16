@@ -1,5 +1,5 @@
-use actix_web::{HttpRequest, HttpResponse, Responder, get, post, web::{self, Query}};
-use std::{fmt::format, sync::Arc};
+use actix_web::{HttpRequest, HttpResponse, Responder, get, post, web::{self}};
+use std::{ sync::Arc};
 
 use crate::auth::middleware::get_claims;
 

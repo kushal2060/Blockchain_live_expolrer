@@ -160,25 +160,25 @@ pub fn verify_sign(
 }
 //now veify address ownership
 
-pub fn verify_address_ownership(
-    address: &str,
-    public_key_hex: &str,
-) -> Result<bool,String> {
-    let public_key_bytes = hex::decode(public_key_hex)
-        .map_err(|e| format!("Invalid public key"))?;
+// pub fn verify_address_ownership(
+//     address: &str,
+//     public_key_hex: &str,
+// ) -> Result<bool,String> {
+//     let public_key_bytes = hex::decode(public_key_hex)
+//         .map_err(|e| format!("Invalid public key"))?;
 
-    let public_key = PublicKey::try_from(public_key_bytes.as_slice())
-        .map_err(|e| format!("Invalid public key: {}",e))?;
-    // Derive address from public key
-    // This is a simplified check - in production, use pallas-addresses
-    // to properly derive and compare addresses
+//     let public_key = PublicKey::try_from(public_key_bytes.as_slice())
+//         .map_err(|e| format!("Invalid public key: {}",e))?;
+//     // Derive address from public key
+//     // This is a simplified check - in production, use pallas-addresses
+//     // to properly derive and compare addresses
     
-    // Aile we'll accept the address if the signature is valid
+//     // Aile we'll accept the address if the signature is valid
   
-    log::info!("Verifying address; {} with public key",address);
-    Ok(true)
+//     log::info!("Verifying address; {} with public key",address);
+//     Ok(true)
 
-}
+// }
 
 //genrate a nonce to sign .yo message ma append garne so that the signature cant be copied 
 

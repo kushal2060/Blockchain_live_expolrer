@@ -4,7 +4,7 @@ use core::str;
 use std::i64;
 
 use jsonwebtoken::{encode,decode,Header,Validation,EncodingKey,DecodingKey,Algorithm};
-use serde::{Serialize,Deserialize};
+
 use uuid::Uuid;
 use once_cell::sync::Lazy;
 
