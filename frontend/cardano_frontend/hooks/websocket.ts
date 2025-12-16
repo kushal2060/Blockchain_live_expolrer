@@ -1,66 +1,121 @@
-//websocket client for communicatiing with rust backend
-import { useEffect,useState,useRef,useCallback } from "react";
+//websocket client for communicating with rust backend
+import { useEffect, useState, useRef, useCallback } from "react";
 
-interface WebSocketMessage {
-    type: string;
-    blocks?: any[];
-    transactions?: any[];
+declare global {
+  interface Window {
+    __GLOBAL_WS?: WebSocket | null;
+  }
 }
 
-export function useWebsocket(url:string){
-    const [isConnected,setIsConnected] = useState(false);
-    const [lastMessage,setLastMessage] = useState<WebSocketMessage | null>(null);
-    const wsRef = useRef<WebSocket | null>(null); //mutable reference to WebSocket instance
-    const reconnectInterval = useRef<ReturnType<typeof setTimeout> | null>(null);
+interface WebSocketMessage {
+  type: string;
+  blocks?: any[];
+  transactions?: any[];
+}
 
-    const connect =useCallback(()=> { //using useCalback kinaki there is recursion so it nedds stable identity
-        try{
-            const ws = new WebSocket(url);
-            wsRef.current = ws;
-            ws.onopen=()=> {
-                console.log("WebSocket connected");
-                setIsConnected(true);
-            };
-            ws.onmessage=(event)=> {
-                try{
-                    const data = JSON.parse(event.data);
-                    setLastMessage(data);
-                }
-                catch(error){
-                    console.error("Error parsing WebSocket message:",error);
-                }
-            };
-           ws.onerror=(error)=>{
-            console.error("WebSocket error:",error);
-           };
-           
-           ws.onclose=()=> {
-            console.log("WebSocket disconnected");
-            setIsConnected(false);
-            //attempt again after 3 seconds
-            reconnectInterval.current = setTimeout(() => {
-                console.log("Reconnecting WebSocket...");
-                connect();
-            }, 3000);
+export function useWebsocket(url: string) {
+  const [isConnected, setIsConnected] = useState(false);
+  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const listenersRef = useRef<{ message?: (e: MessageEvent) => void; open?: () => void; close?: () => void }>(
+    {}
+  );
+  const reconnectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const connect = useCallback(() => {
+    try {
+      // If a global socket exists, reuse it and attach listeners
+      if (typeof window !== "undefined" && window.__GLOBAL_WS) {
+        const existing = window.__GLOBAL_WS!;
+        wsRef.current = existing;
+        // attach listeners that update this hook's state
+        const onmessage = (ev: MessageEvent) => {
+          try {
+            const data = JSON.parse(ev.data);
+            setLastMessage(data);
+          } catch {
+            // ignore parse errors
+          }
         };
+        const onopen = () => setIsConnected(true);
+        const onclose = () => setIsConnected(false);
 
-    } catch(error){
-        console.error("WebSocket connection error:",error);
+        existing.addEventListener("message", onmessage);
+        existing.addEventListener("open", onopen);
+        existing.addEventListener("close", onclose);
+
+        listenersRef.current = { message: onmessage, open: onopen, close: onclose };
+
+        // reflect current ready state
+        if (existing.readyState === WebSocket.OPEN) setIsConnected(true);
+        return;
+      }
+
+      // create new socket and store globally
+      const ws = new WebSocket(url);
+      wsRef.current = ws;
+      if (typeof window !== "undefined") window.__GLOBAL_WS = ws;
+      let createdByThis = true;
+
+      const onopen = () => {
+        setIsConnected(true);
+      };
+      const onmessage = (event: MessageEvent) => {
+        try {
+          const data = JSON.parse(event.data);
+          setLastMessage(data);
+        } catch {
+          // ignore bad messages
+        }
+      };
+      const onerror = (evt: Event) => {
+        // browser WebSocket error events are opaque; avoid dumping empty object
+        console.warn("WebSocket error (event):", (evt && (evt as any).type) || evt);
+      };
+      const onclose = () => {
+        setIsConnected(false);
+        // clear global reference only if this instance created it
+        if (createdByThis && typeof window !== "undefined" && window.__GLOBAL_WS === ws) {
+          window.__GLOBAL_WS = null;
+        }
+        // schedule reconnect (this hook will try to reattach on next connect)
+        reconnectTimeout.current = setTimeout(() => {
+          connect();
+        }, 3000);
+      };
+
+      ws.addEventListener("open", onopen);
+      ws.addEventListener("message", onmessage);
+      ws.addEventListener("error", onerror);
+      ws.addEventListener("close", onclose);
+
+      listenersRef.current = { message: onmessage, open: onopen, close: onclose };
+    } catch (error) {
+      console.warn("WebSocket connection error:", (error as any)?.message || error);
     }
-    },[url]);
-    
-    useEffect(() => {
-        connect();
-        return ()=>{
-            if(reconnectInterval.current){
-                clearTimeout(reconnectInterval.current);
-            }
-            if(wsRef.current){
-                wsRef.current.close();
-            }
-        };
+  }, [url]);
 
-    },[connect]);
+  useEffect(() => {
+    connect();
+    return () => {
+      // remove listeners attached by this hook but do not forcibly close the global socket
+      const ws = wsRef.current;
+      if (ws && listenersRef.current.message) {
+        ws.removeEventListener("message", listenersRef.current.message);
+      }
+      if (ws && listenersRef.current.open) {
+        ws.removeEventListener("open", listenersRef.current.open);
+      }
+      if (ws && listenersRef.current.close) {
+        ws.removeEventListener("close", listenersRef.current.close);
+      }
+      listenersRef.current = {};
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+      }
+      // do not call ws.close() here so other pages keep using the socket
+    };
+  }, [connect]);
 
-    return { isConnected, lastMessage };
+  return { isConnected, lastMessage };
 }
