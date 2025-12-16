@@ -22,7 +22,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
   const [txCount, setTxCount] = useState<number>(0);
 
   const wsRef = useRef<WebSocket | null>(null);
-  const url = (process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws');
+  const url = (process.env.NEXT_PUBLIC_WS_URL || 'wss://blockchainliveexpolrer-production-b895.up.railway.app/ws');
 
   useEffect(() => {
     if (wsRef.current) return; // already connected
