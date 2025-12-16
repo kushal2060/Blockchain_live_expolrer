@@ -2,7 +2,7 @@
 
 import { AuthResponse, ChallengeResponse, User } from '@/types/auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://blockchainliveexpolrer-production-b895.up.railway.app';
 
 // Helper: Extract raw bytes from CBOR hex string
 function extractFromCBOR(hexStr: string, expectedByteLength: number): string {
