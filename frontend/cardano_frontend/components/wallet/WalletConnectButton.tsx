@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useWallet } from '@/context/WalletContext';
 import { useAuth } from '@/context/AuthContext';
 import WalletModal from './WalletModal';
+import { Blocks, LogIn, LogOut, Plug, Wallet } from 'lucide-react';
 
 export default function WalletConnectButton() {
   const [showModal, setShowModal] = useState(false);
@@ -52,11 +53,13 @@ export default function WalletConnectButton() {
           className="flex items-center gap-3 px-4 py-2 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-lg transition-all"
         >
           {connectedWallet?.icon && (
-            <img
-              src={connectedWallet.icon}
-              alt={connectedWallet.name}
-              className="w-8 h-8 rounded-lg"
-            />
+            <div className="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center p-1">
+              <img
+                src={connectedWallet.icon}
+                alt={connectedWallet.name}
+                className="w-full h-full object-contain"
+              />
+            </div>
           )}
           <div className="text-left hidden md:block">
             <div className="text-xs text-gray-500 font-medium">
@@ -89,34 +92,28 @@ export default function WalletConnectButton() {
             <div className="px-4 py-3 border-b border-gray-200">
               <div className="text-xs text-gray-500 mb-1">Connected Wallet</div>
               <div className="font-semibold text-gray-900">{connectedWallet?.name}</div>
+        
               <div className="text-xs font-mono text-gray-600 mt-1 break-all">
                 {user.address}
               </div>
             </div>
 
             <div className="py-2">
-              <a
-                href="/dashboard"
-                className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"
-                onClick={() => setShowDropdown(false)}
-              >
-                <span className="text-xl">📊</span>
-                <span className="text-sm font-medium text-gray-700">Dashboard</span>
-              </a>
+  
               <a
                 href="/my-transactions"
-                className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 transition-colors"
                 onClick={() => setShowDropdown(false)}
               >
-                <span className="text-xl">💳</span>
+                <Blocks className='w-5 h-5'/>
                 <span className="text-sm font-medium text-gray-700">My Transactions</span>
               </a>
               <a
                 href="/my-wallets"
-                className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 transition-colors"
                 onClick={() => setShowDropdown(false)}
               >
-                <span className="text-xl">👛</span>
+                <Wallet className='w-5 h-5'/>
                 <span className="text-sm font-medium text-gray-700">My Wallets</span>
               </a>
             </div>
@@ -126,7 +123,7 @@ export default function WalletConnectButton() {
                 onClick={handleLogout}
                 className="flex items-center gap-3 px-4 py-2 hover:bg-red-50 transition-colors w-full text-left"
               >
-                <span className="text-xl">🚪</span>
+                <LogOut></LogOut>
                 <span className="text-sm font-medium text-red-600">Logout</span>
               </button>
             </div>
@@ -142,7 +139,13 @@ export default function WalletConnectButton() {
       <div className="flex items-center gap-3">
         <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-white border-2 border-gray-200 rounded-xl">
           {connectedWallet.icon && (
-            <img src={connectedWallet.icon} alt="" className="w-8 h-8 rounded-lg" />
+            <div className="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center p-1">
+              <img 
+                src={connectedWallet.icon} 
+                alt="" 
+                className="w-full h-full object-contain" 
+              />
+            </div>
           )}
           <div className="text-left">
             <div className="text-xs text-gray-500 font-medium">Connected</div>
@@ -164,7 +167,7 @@ export default function WalletConnectButton() {
             </>
           ) : (
             <>
-              <span>✍️</span>
+              <LogIn />
               <span>Sign In</span>
             </>
           )}
@@ -187,7 +190,7 @@ export default function WalletConnectButton() {
         onClick={handleConnect}
         className="px-6 py-3 bg-linear-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all flex items-center gap-2"
       >
-        <span>👛</span>
+        <Plug className='' />
         <span>Connect Wallet</span>
       </button>
       <WalletModal isOpen={showModal} onClose={() => setShowModal(false)} />

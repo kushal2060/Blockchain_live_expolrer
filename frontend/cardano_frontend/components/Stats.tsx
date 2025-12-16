@@ -1,34 +1,10 @@
-
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useWebsocket } from '@/hooks/websocket';
 import LiveIndicator from './LiveIndicator';
-
-
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://blockchainliveexpolrer-production-b895.up.railway.app/ws';
+import { useWebsocketContext } from '@/context/WebSocketContext';
 
 export default function Stats() {
-  const [latestBlock, setLatestBlock] = useState<number | null>(null);
-  const [blockCount, setBlockCount] = useState<number>(0);
-  const [txCount, setTxCount] = useState<number>(0);
-  const { isConnected, lastMessage } = useWebsocket(WS_URL);
-
-
-  useEffect(() => {
-    if (lastMessage?.type === 'update') {
-      if (lastMessage.blocks && lastMessage.blocks.length > 0) {
-        const n = Number(lastMessage.blocks[0]?.number);
-        if (Number.isFinite(n)) {
-          setLatestBlock(n);
-        }
-        setBlockCount((prev) => prev + (lastMessage.blocks?.length || 0));
-      }
-      if (lastMessage.transactions) {
-        setTxCount((prev) => prev + (lastMessage.transactions?.length || 0));
-      }
-    }
-  }, [lastMessage]);
+  const { isConnected, latestBlock, blockCount, txCount } = useWebsocketContext();
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
